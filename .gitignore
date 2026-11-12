@@ -1,0 +1,7 @@
+# Python & PyTorch
+__pycache__/
+*.pt
+*.safetensors
+.venv/
+.env
+.DS_Store
