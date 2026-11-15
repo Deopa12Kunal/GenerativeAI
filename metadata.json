@@ -1,0 +1,6 @@
+{
+  "name": "GenAI Builder Notes - GitHub Study Hub",
+  "description": "Comprehensive digital notes, visual roadmap, and GitHub-ready markdown repository for Generative AI covering Transformers, Pretraining, Fine-Tuning, Optimization, Evaluation, and Deployment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
