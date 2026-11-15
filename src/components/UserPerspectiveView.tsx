@@ -21,7 +21,7 @@ interface UserPerspectiveViewProps {
   userPillars: NotePillar[];
   selectedPillarId: string;
   onSelectPillar: (pillarId: string) => void;
-  onOpenNotesForPillar: (pillarId: string) => void;
+  onOpenNotesForPillar: (pillarId: string, sectionId?: string) => void;
   slideImagePath: string;
 }
 
@@ -93,7 +93,7 @@ export const UserPerspectiveView: React.FC<UserPerspectiveViewProps> = ({
       {viewMode === 'blueprint' ? (
         <div className="space-y-4">
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            This module maps how engineers build products on top of foundation models — from raw APIs and LangChain to RAG pipelines, autonomous agents, and LLMOps.
+            This module maps how engineers build products on top of foundation models — click any box (or jump straight into <strong>LangChain</strong>) to read the slide-anchored notes.
           </p>
 
           {/* Grid Layout mimicking Slide 2 exact geometry */}
@@ -112,7 +112,7 @@ export const UserPerspectiveView: React.FC<UserPerspectiveViewProps> = ({
                     selectedPillarId === basicApps.id
                       ? 'ring-2 ring-emerald-500 shadow-md border-emerald-400'
                       : basicApps.colorBorder
-                  } hover:shadow-md hover:scale-[1.01]`}
+                  } hover:shadow-md`}
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -131,7 +131,7 @@ export const UserPerspectiveView: React.FC<UserPerspectiveViewProps> = ({
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/60 space-y-2">
+                  <div className="mt-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/60 space-y-2.5">
                     <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 font-medium">
                       <li className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -141,9 +141,35 @@ export const UserPerspectiveView: React.FC<UserPerspectiveViewProps> = ({
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <span>Using LLM APIs</span>
                       </li>
-                      <li className="flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span>LangChain</span>
+                      <li className="space-y-1.5 pt-1 pb-1">
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-900 dark:text-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>LangChain</span>
+                        </div>
+                        <div className="pl-5 flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPillar(basicApps.id);
+                              onOpenNotesForPillar(basicApps.id, 'langchain-what-is-langchain');
+                            }}
+                            className="px-2 py-1 rounded-md bg-white/90 dark:bg-slate-900/90 border border-emerald-300 dark:border-emerald-700 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-colors"
+                          >
+                            What is LangChain & Benefits →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPillar(basicApps.id);
+                              onOpenNotesForPillar(basicApps.id, 'how-semantic-search-works');
+                            }}
+                            className="px-2 py-1 rounded-md bg-white/90 dark:bg-slate-900/90 border border-emerald-300 dark:border-emerald-700 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-colors"
+                          >
+                            How Semantic Search Works →
+                          </button>
+                        </div>
                       </li>
                       <li className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />

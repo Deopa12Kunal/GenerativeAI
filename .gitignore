@@ -1,7 +1,8 @@
-# Python & Checkpoints
-__pycache__/
-*.pt
-*.safetensors
-.venv/
-.env
+node_modules/
+build/
+dist/
+coverage/
 .DS_Store
+*.log
+.env*
+!.env.example

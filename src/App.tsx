@@ -22,15 +22,47 @@ import {
   Bot
 } from 'lucide-react';
 
-const STORAGE_KEY = 'genai-study-pillars-v3';
+const STORAGE_KEY = 'genai-study-pillars-v4';
+
+function mergeSavedPillars(saved: NotePillar[]): NotePillar[] {
+  return INITIAL_PILLARS.map((initialPillar) => {
+    const existing = saved.find((p) => p.id === initialPillar.id);
+    if (!existing) return initialPillar;
+
+    const mergedSections = initialPillar.sections.map((initSec) => {
+      const savedSec = existing.sections.find((s) => s.id === initSec.id);
+      if (!savedSec) return initSec;
+      // Preserve user's personal lecture notes if added
+      const personalIdx = savedSec.markdownContent.indexOf('### My Lecture Notes');
+      if (personalIdx !== -1) {
+        const personalPart = savedSec.markdownContent.slice(personalIdx);
+        return {
+          ...initSec,
+          markdownContent: initSec.markdownContent.trimEnd() + '\n\n---\n\n' + personalPart,
+        };
+      }
+      return initSec;
+    });
+
+    // Keep any extra user-uploaded slide sections that are not in INITIAL_PILLARS
+    const extraSections = existing.sections.filter(
+      (s) => !initialPillar.sections.some((initSec) => initSec.id === s.id)
+    );
+
+    return {
+      ...initialPillar,
+      sections: [...mergedSections, ...extraSections],
+    };
+  });
+}
 
 export default function App() {
   const [pillars, setPillars] = useState<NotePillar[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('genai-study-pillars-v3');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return mergeSavedPillars(parsed);
       }
     } catch {}
     return INITIAL_PILLARS;
@@ -43,6 +75,7 @@ export default function App() {
   }, [pillars]);
 
   const [selectedPillarId, setSelectedPillarId] = useState<string>('transformer-architecture');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'landing' | 'roadmap' | 'user-view' | 'notes' | 'analyzer' | 'flashcards'>('landing');
 
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -140,14 +173,18 @@ export default function App() {
       const codeRes = await fetch('/api/project-codebase-files').catch(() => null);
       if (codeRes && codeRes.ok) {
         const data = await codeRes.json();
-        const codebaseFiles: { path: string; content: string }[] = data.files || [];
+        const codebaseFiles: { path: string; content: string; encoding?: 'utf-8' | 'base64' }[] = data.files || [];
         codebaseFiles.forEach((file) => {
-          zip.file(file.path, file.content);
+          zip.file(
+            file.path,
+            file.content,
+            file.encoding === 'base64' ? { base64: true } : undefined
+          );
         });
       }
 
-      // Ensure README and all 14 notes are in the zip
-      zip.file('README.md', generateFullReadme());
+      // Ensure README and all 14 live notes are up to date in the zip
+      zip.file('notes/README.md', generateFullReadme());
 
       pillars.forEach((pillar) => {
         const fullContent = `# ${pillar.title} (${pillar.filename})
@@ -165,11 +202,22 @@ ${pillar.sections
   .map(
     (sec) => `## ${sec.title}
 
-${sec.markdownContent}
+${
+  sec.slideImages && sec.slideImages.length > 0
+    ? sec.slideImages
+        .map(
+          (img) =>
+            `![${img.caption}](../public${img.src})\n${
+              img.explanation ? `*About this slide:* ${img.explanation}\n` : ''
+            }`
+        )
+        .join('\n')
+    : ''
+}${sec.markdownContent}
 
 ${
   sec.interviewQuestions.length > 0
-    ? `### Key Technical Interview Q&A
+    ? `### Self-Check Questions
 ${sec.interviewQuestions
   .map((iq, i) => `#### Q${i + 1}: ${iq.question}\n**Answer:** ${iq.answer}\n`)
   .join('\n')}`
@@ -179,7 +227,7 @@ ${sec.interviewQuestions
   )
   .join('\n\n---\n\n')}
 `;
-        zip.file(pillar.filename, fullContent);
+        zip.file(`notes/${pillar.filename}`, fullContent);
       });
 
       // Generate blob
@@ -274,8 +322,9 @@ ${sec.interviewQuestions
         {activeTab === 'landing' && (
           <LandingPage
             pillars={pillars}
-            onExploreNotes={(pillarId) => {
+            onExploreNotes={(pillarId, sectionId) => {
               if (pillarId) setSelectedPillarId(pillarId);
+              setSelectedSectionId(sectionId || '');
               setActiveTab('notes');
             }}
             onOpenUploader={() => setActiveTab('analyzer')}
@@ -292,6 +341,7 @@ ${sec.interviewQuestions
             onSelectPillar={(id) => setSelectedPillarId(id)}
             onOpenNotesForPillar={(id) => {
               setSelectedPillarId(id);
+              setSelectedSectionId('');
               setActiveTab('notes');
             }}
             originalImagePath={REPO_METADATA.slide1ImagePath}
@@ -303,8 +353,9 @@ ${sec.interviewQuestions
             userPillars={userPillars}
             selectedPillarId={selectedPillarId}
             onSelectPillar={(id) => setSelectedPillarId(id)}
-            onOpenNotesForPillar={(id) => {
+            onOpenNotesForPillar={(id, secId) => {
               setSelectedPillarId(id);
+              setSelectedSectionId(secId || '');
               setActiveTab('notes');
             }}
             slideImagePath={REPO_METADATA.slide2ImagePath}
@@ -315,7 +366,11 @@ ${sec.interviewQuestions
           <NotesViewer
             pillars={pillars}
             activePillarId={selectedPillarId}
-            setActivePillarId={setSelectedPillarId}
+            initialSectionId={selectedSectionId}
+            setActivePillarId={(id) => {
+              setSelectedPillarId(id);
+              setSelectedSectionId('');
+            }}
             onOpenAskAI={handleOpenAskAI}
             onUpdatePillarMarkdown={handleUpdatePillarMarkdown}
             onNavigateToSlide={() => {

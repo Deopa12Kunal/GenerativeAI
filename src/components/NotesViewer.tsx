@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NotePillar, NoteSection } from '../data/notesData';
 import {
   Copy,
@@ -20,6 +20,7 @@ import {
 interface NotesViewerProps {
   pillars: NotePillar[];
   activePillarId: string;
+  initialSectionId?: string;
   setActivePillarId: (pillarId: string) => void;
   onOpenAskAI: (topic: string, context: string) => void;
   onUpdatePillarMarkdown: (pillarId: string, sectionId: string, newContent: string) => void;
@@ -29,12 +30,13 @@ interface NotesViewerProps {
 export const NotesViewer: React.FC<NotesViewerProps> = ({
   pillars,
   activePillarId,
+  initialSectionId,
   setActivePillarId,
   onOpenAskAI,
   onUpdatePillarMarkdown,
   onNavigateToSlide,
 }) => {
-  const [activeSectionId, setActiveSectionId] = useState<string>('');
+  const [activeSectionId, setActiveSectionId] = useState<string>(initialSectionId || '');
   const [viewFormat, setViewFormat] = useState<'crisp' | 'rendered' | 'raw'>('crisp');
   const [perspectiveFilter, setPerspectiveFilter] = useState<'all' | 'builder' | 'user'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +47,15 @@ export const NotesViewer: React.FC<NotesViewerProps> = ({
   const [quickNoteSaved, setQuickNoteSaved] = useState(false);
 
   const currentPillar = pillars.find((p) => p.id === activePillarId) || pillars[0];
+
+  useEffect(() => {
+    if (initialSectionId && currentPillar.sections.some((s) => s.id === initialSectionId)) {
+      setActiveSectionId(initialSectionId);
+    } else if (!currentPillar.sections.some((s) => s.id === activeSectionId)) {
+      setActiveSectionId(currentPillar.sections[0]?.id || '');
+    }
+  }, [activePillarId, initialSectionId, currentPillar.sections]);
+
   const currentSection =
     currentPillar.sections.find((s) => s.id === activeSectionId) || currentPillar.sections[0];
 
@@ -111,7 +122,23 @@ ${currentSection.interviewQuestions
   };
 
   const handleDownloadSingleMd = () => {
-    const content = `# ${currentPillar.title}\n\n${currentSection.markdownContent}`;
+    const allSectionsMd = currentPillar.sections
+      .map((sec) => {
+        const imgs =
+          sec.slideImages && sec.slideImages.length > 0
+            ? sec.slideImages
+                .map(
+                  (img) =>
+                    `![${img.caption}](../public${img.src})\n${
+                      img.explanation ? `*About this slide:* ${img.explanation}\n` : ''
+                    }`
+                )
+                .join('\n')
+            : '';
+        return `${imgs}${sec.markdownContent}`;
+      })
+      .join('\n\n---\n\n');
+    const content = `# ${currentPillar.title}\n\n${allSectionsMd}`;
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -355,6 +382,7 @@ ${currentSection.interviewQuestions
     return (
       p.title.toLowerCase().includes(query) ||
       p.subtopics.some((st) => st.toLowerCase().includes(query)) ||
+      p.sections.some((sec) => sec.title.toLowerCase().includes(query)) ||
       p.filename.toLowerCase().includes(query)
     );
   });
@@ -401,7 +429,7 @@ ${currentSection.interviewQuestions
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search topics: RAG, LangChain, BERT, Ollama..."
+            placeholder="Search topics: LangChain, Semantic Search, RAG..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
@@ -413,33 +441,62 @@ ${currentSection.interviewQuestions
           {filteredPillars.map((pillar, idx) => {
             const isSelected = pillar.id === activePillarId;
             return (
-              <button
+              <div
                 key={pillar.id}
-                onClick={() => {
-                  setActivePillarId(pillar.id);
-                  setActiveSectionId(pillar.sections[0]?.id || '');
-                }}
-                className={`w-full text-left p-3 rounded-xl border transition-all duration-150 flex flex-col gap-1 ${
+                className={`w-full rounded-xl border transition-all duration-150 ${
                   isSelected
                     ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 shadow-xs'
                     : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                 }`}
               >
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-slate-500 dark:text-slate-400">
-                    {pillar.perspective === 'user' ? 'User Box' : 'Builder Box'} 0{(idx % 7) + 1} ({pillar.colorName})
-                  </span>
-                  <span className="font-mono text-slate-400 text-[10px]">
-                    {pillar.filename}
-                  </span>
-                </div>
-                <div className="font-bold text-xs text-slate-900 dark:text-white">
-                  {pillar.title}
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                  {pillar.subtopics.join(' · ')}
-                </div>
-              </button>
+                <button
+                  onClick={() => {
+                    setActivePillarId(pillar.id);
+                    setActiveSectionId(pillar.sections[0]?.id || '');
+                  }}
+                  className="w-full text-left p-3 flex flex-col gap-1"
+                >
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">
+                      {pillar.perspective === 'user' ? 'User Box' : 'Builder Box'} 0{(idx % 7) + 1} ({pillar.colorName})
+                    </span>
+                    <span className="font-mono text-slate-400 text-[10px]">
+                      {pillar.filename}
+                    </span>
+                  </div>
+                  <div className="font-bold text-xs text-slate-900 dark:text-white">
+                    {pillar.title}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                    {pillar.subtopics.join(' · ')}
+                  </div>
+                </button>
+
+                {pillar.sections.length > 1 && (
+                  <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/70 dark:border-slate-800/70 space-y-1">
+                    {pillar.sections.map((sec, sIdx) => {
+                      const isSecActive = isSelected && sec.id === currentSection.id;
+                      return (
+                        <button
+                          key={sec.id}
+                          onClick={() => {
+                            setActivePillarId(pillar.id);
+                            setActiveSectionId(sec.id);
+                          }}
+                          className={`w-full text-left px-2 py-1 rounded-md text-[11px] font-medium transition-colors flex items-center justify-between ${
+                            isSecActive
+                              ? 'bg-indigo-600 text-white'
+                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span className="truncate">{sIdx + 1}. {sec.title}</span>
+                          <span className="ml-1 shrink-0">→</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -552,6 +609,28 @@ ${currentSection.interviewQuestions
           </div>
         </div>
 
+        {/* Section Switcher Tabs when a module has multiple topic notes */}
+        {currentPillar.sections.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            {currentPillar.sections.map((sec, sIdx) => {
+              const isActive = sec.id === currentSection.id;
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => setActiveSectionId(sec.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {sIdx + 1}. {sec.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Easy Summary Mode */}
         {viewFormat === 'crisp' && (
           <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
@@ -562,9 +641,8 @@ ${currentSection.interviewQuestions
                   📸 Slide Location:
                 </span>
                 <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
-                  {currentPillar.slideBoxName}
+                  {currentSection.slideBoxRef || `${currentPillar.slideBoxName} (${currentPillar.slideBoxColor})`}
                 </span>
-                <span className="text-slate-400">({currentPillar.slideBoxColor})</span>
               </div>
               <button
                 onClick={onNavigateToSlide}
@@ -574,6 +652,35 @@ ${currentSection.interviewQuestions
                 <ExternalLink className="w-3 h-3" />
               </button>
             </div>
+
+            {/* Embedded Reference Slide Images (if attached to this section) */}
+            {currentSection.slideImages && currentSection.slideImages.length > 0 && (
+              <div className="space-y-3">
+                {currentSection.slideImages.map((img, idx) => (
+                  <figure
+                    key={idx}
+                    className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950"
+                  >
+                    <img
+                      src={img.src}
+                      alt={img.caption}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-auto max-h-[420px] object-contain mx-auto block"
+                    />
+                    <figcaption className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-1">
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {img.caption}
+                      </div>
+                      {img.explanation && (
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {img.explanation}
+                        </p>
+                      )}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
 
             {/* Core Idea Box */}
             {currentSection.crispSummary.coreFormulaOrRule && (
@@ -671,6 +778,34 @@ ${currentSection.interviewQuestions
         {/* Full Rendered Markdown Preview */}
         {viewFormat === 'rendered' && (
           <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-6">
+            {currentSection.slideImages && currentSection.slideImages.length > 0 && (
+              <div className="space-y-3">
+                {currentSection.slideImages.map((img, idx) => (
+                  <figure
+                    key={idx}
+                    className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950"
+                  >
+                    <img
+                      src={img.src}
+                      alt={img.caption}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-auto max-h-[420px] object-contain mx-auto block"
+                    />
+                    <figcaption className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-1">
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {img.caption}
+                      </div>
+                      {img.explanation && (
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {img.explanation}
+                        </p>
+                      )}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+
             <div className="prose prose-slate dark:prose-invert max-w-none">
               {renderFormattedMarkdown(currentSection.markdownContent)}
             </div>

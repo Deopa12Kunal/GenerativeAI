@@ -118,6 +118,58 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Mobile / Narrow Viewport Navigation Strip */}
+      <nav className="md:hidden border-t border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center gap-4 overflow-x-auto text-xs font-medium text-slate-600 dark:text-slate-300">
+        <button
+          onClick={() => setActiveTab('landing')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'landing' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('user-view')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'user-view' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          User's View (41:37)
+        </button>
+        <button
+          onClick={() => setActiveTab('roadmap')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'roadmap' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          Builder's View (35:35)
+        </button>
+        <button
+          onClick={() => setActiveTab('notes')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'notes' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          All Notes
+        </button>
+        <button
+          onClick={() => setActiveTab('analyzer')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'analyzer' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          Upload Slide
+        </button>
+        <button
+          onClick={() => setActiveTab('flashcards')}
+          className={`whitespace-nowrap shrink-0 py-0.5 ${
+            activeTab === 'flashcards' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''
+          }`}
+        >
+          Flashcards
+        </button>
+      </nav>
     </header>
   );
 };

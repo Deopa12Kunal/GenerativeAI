@@ -13,9 +13,9 @@ import {
   Sparkles,
   AlertCircle,
   Key,
-  Layers,
   FileCode2,
-  BookOpen
+  BookOpen,
+  GitCommit
 } from 'lucide-react';
 
 interface GitHubExportModalProps {
@@ -41,12 +41,17 @@ export const GitHubExportModal: React.FC<GitHubExportModalProps> = ({
   const [repoName, setRepoName] = useState('genai-builders-notes');
   const [patToken, setPatToken] = useState('');
   const [branch, setBranch] = useState('main');
+  const [commitMessage, setCommitMessage] = useState(
+    'docs(genai): update GenAI study hub, LangChain & Semantic Search notes'
+  );
 
   const [isPushing, setIsPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [pushError, setPushError] = useState<string | null>(null);
   const [pushSuccessResult, setPushSuccessResult] = useState<{
     repoUrl: string;
+    commitUrl?: string;
+    commitMessage?: string;
     pushedCount: number;
     pushedFiles: string[];
     branch?: string;
@@ -58,22 +63,27 @@ export const GitHubExportModal: React.FC<GitHubExportModalProps> = ({
   if (!isOpen) return null;
 
   const gitUrl = `https://github.com/${githubUsername.trim() || 'username'}/${repoName.trim() || 'repo'}.git`;
+  const effectiveCommitMessage =
+    commitMessage.trim() || 'docs(genai): update GenAI study notes and codebase';
 
   // Build notes-only array
-  const prepareNotesOnlyFiles = () => {
-    const files: { path: string; content: string }[] = [];
+  const prepareNotesOnlyFiles = (includeNotesPrefix = true) => {
+    const files: { path: string; content: string; encoding?: 'utf-8' | 'base64' }[] = [];
+    const prefix = includeNotesPrefix ? 'notes/' : '';
 
     // 1. README.md
     files.push({
-      path: 'README.md',
+      path: `${prefix}README.md`,
       content: generateFullReadme(),
+      encoding: 'utf-8',
     });
 
-    // 2. All 7 pillar files
+    // 2. All 14 module files (7 Builder's + 7 User's)
     pillars.forEach((pillar) => {
       const fullContent = `# ${pillar.title} (${pillar.filename})
 
-> Reference: YouTube Lecture "Generative AI: The Builder's Perspective" by Nitish Singh (CampusX, Timestamp 35:35)
+> Reference: YouTube Lecture Series by Nitish Singh (CampusX)
+> Perspective: ${pillar.perspective === 'builder' ? "The Builder's Perspective (35:35)" : "The User's Perspective (41:37)"}
 > Slide Box: ${pillar.slideBoxName} (${pillar.slideBoxColor})
 
 ## Table of Contents
@@ -85,11 +95,22 @@ ${pillar.sections
   .map(
     (sec) => `## ${sec.title}
 
-${sec.markdownContent}
+${
+  sec.slideImages && sec.slideImages.length > 0
+    ? sec.slideImages
+        .map(
+          (img) =>
+            `![${img.caption}](${includeNotesPrefix ? '../public' : 'public'}${img.src})\n${
+              img.explanation ? `*About this slide:* ${img.explanation}\n` : ''
+            }`
+        )
+        .join('\n')
+    : ''
+}${sec.markdownContent}
 
 ${
   sec.interviewQuestions.length > 0
-    ? `### Key Technical Interview Q&A
+    ? `### Self-Check Questions
 ${sec.interviewQuestions
   .map((iq, i) => `#### Q${i + 1}: ${iq.question}\n**Answer:** ${iq.answer}\n`)
   .join('\n')}`
@@ -100,15 +121,17 @@ ${sec.interviewQuestions
   .join('\n\n---\n\n')}
 `;
       files.push({
-        path: pillar.filename,
+        path: `${prefix}${pillar.filename}`,
         content: fullContent,
+        encoding: 'utf-8',
       });
     });
 
-    // 3. .gitignore
-    files.push({
-      path: '.gitignore',
-      content: `# Python & Checkpoints
+    // 3. .gitignore (only for standalone notes-only repo)
+    if (!includeNotesPrefix) {
+      files.push({
+        path: '.gitignore',
+        content: `# Python & Checkpoints
 __pycache__/
 *.pt
 *.safetensors
@@ -116,7 +139,9 @@ __pycache__/
 .env
 .DS_Store
 `,
-    });
+        encoding: 'utf-8',
+      });
+    }
 
     return files;
   };
@@ -140,10 +165,10 @@ __pycache__/
       setIsPushing(true);
       setPushStatus('Preparing files to push...');
 
-      let filesToPush: { path: string; content: string }[] = [];
+      let filesToPush: { path: string; content: string; encoding?: 'utf-8' | 'base64' }[] = [];
 
       if (pushScope === 'full-codebase') {
-        setPushStatus('Fetching project codebase files (React + Express + Tailwind + Notes)...');
+        setPushStatus('Fetching project codebase files (React + Express + Tailwind + Images + Notes)...');
         const codeRes = await fetch('/api/project-codebase-files');
         if (!codeRes.ok) {
           throw new Error('Failed to gather project codebase files.');
@@ -151,8 +176,8 @@ __pycache__/
         const codeData = await codeRes.json();
         filesToPush = codeData.files || [];
 
-        // Also ensure all 7 markdown notes are added/updated
-        const noteFiles = prepareNotesOnlyFiles();
+        // Sync live React notes (including any personal notes added in UI) into notes/
+        const noteFiles = prepareNotesOnlyFiles(true);
         noteFiles.forEach((nf) => {
           const existingIdx = filesToPush.findIndex((f) => f.path === nf.path);
           if (existingIdx >= 0) {
@@ -162,10 +187,10 @@ __pycache__/
           }
         });
       } else {
-        filesToPush = prepareNotesOnlyFiles();
+        filesToPush = prepareNotesOnlyFiles(false);
       }
 
-      setPushStatus(`Pushing ${filesToPush.length} files to ${githubUsername}/${repoName} (${branch})...`);
+      setPushStatus(`Creating 1 commit with ${filesToPush.length} files on ${githubUsername}/${repoName} (${branch})...`);
 
       const res = await fetch('/api/github/direct-push', {
         method: 'POST',
@@ -175,6 +200,7 @@ __pycache__/
           repo: repoName.trim(),
           token: patToken.trim(),
           branch: branch.trim() || 'main',
+          commitMessage: effectiveCommitMessage,
           files: filesToPush,
         }),
       });
@@ -281,16 +307,22 @@ __pycache__/
                     Successfully Pushed to GitHub!
                   </h4>
                   <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed max-w-md mx-auto">
-                    All {pushSuccessResult.pushedCount} source files and markdown notes were committed to branch <code className="font-mono font-bold">{pushSuccessResult.branch || 'main'}</code>. You can now clone the repo and add new pages!
+                    All {pushSuccessResult.pushedCount} files were committed to branch{' '}
+                    <code className="font-mono font-bold">{pushSuccessResult.branch || 'main'}</code> in one commit.
                   </p>
-                  <div className="pt-2 flex items-center justify-center gap-3">
+                  {pushSuccessResult.commitMessage && (
+                    <div className="max-w-md mx-auto px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-900/70 border border-emerald-200 dark:border-emerald-800 text-[11px] font-mono text-emerald-900 dark:text-emerald-200 break-words">
+                      Commit: "{pushSuccessResult.commitMessage}"
+                    </div>
+                  )}
+                  <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                     <a
-                      href={pushSuccessResult.repoUrl}
+                      href={pushSuccessResult.commitUrl || pushSuccessResult.repoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
                     >
-                      <span>Open Repository on GitHub</span>
+                      <span>{pushSuccessResult.commitUrl ? 'View Commit on GitHub' : 'Open Repository on GitHub'}</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                     <button
@@ -345,7 +377,7 @@ __pycache__/
                             Markdown Notes Only
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight block mt-0.5">
-                            Only the 7 `.md` chapter files, README.md, and .gitignore documentation.
+                            Only the 14 `.md` module files (Builder & User views), README.md, and .gitignore.
                           </span>
                         </div>
                       </button>
@@ -417,17 +449,33 @@ __pycache__/
                     </p>
                   </div>
 
-                  <div className="text-xs">
-                    <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Target Branch:
-                    </label>
-                    <input
-                      type="text"
-                      value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
-                      placeholder="main"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="sm:col-span-2">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                        <GitCommit className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Commit Message:</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={commitMessage}
+                        onChange={(e) => setCommitMessage(e.target.value)}
+                        placeholder="e.g. feat: add LangChain and Semantic Search notes"
+                        required
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Target Branch:
+                      </label>
+                      <input
+                        type="text"
+                        value={branch}
+                        onChange={(e) => setBranch(e.target.value)}
+                        placeholder="main"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
                   </div>
 
                   <button
@@ -473,10 +521,10 @@ __pycache__/
                 <div className="p-3 rounded-lg bg-slate-900 text-slate-100 flex items-center justify-between text-xs font-mono">
                   <div>
                     <span className="text-slate-500 text-[10px] block"># 2. Commit</span>
-                    <div className="text-emerald-400">git commit -m "feat: complete GenAI study hub app & landing page"</div>
+                    <div className="text-emerald-400">git commit -m "{effectiveCommitMessage.replace(/"/g, '\\"')}"</div>
                   </div>
                   <button
-                    onClick={() => copyToClipboard('git commit -m "feat: complete GenAI study hub app & landing page"', 2)}
+                    onClick={() => copyToClipboard(`git commit -m "${effectiveCommitMessage.replace(/"/g, '\\"')}"`, 2)}
                     className="p-1 rounded text-slate-300 hover:text-white"
                   >
                     {copiedStep === 2 ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -515,7 +563,7 @@ __pycache__/
                   Offline Archive
                 </span>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
-                  Download all 7 markdown files, README.md, and .gitignore in a single zip archive.
+                  Download the full app codebase, slide images, and all 14 markdown notes in a single zip archive.
                 </p>
               </div>
               <button

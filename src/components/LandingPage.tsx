@@ -22,7 +22,7 @@ import {
 
 interface LandingPageProps {
   pillars: NotePillar[];
-  onExploreNotes: (pillarId?: string) => void;
+  onExploreNotes: (pillarId?: string, sectionId?: string) => void;
   onOpenUploader: () => void;
   onOpenFlashcards: () => void;
   onOpenExportModal: () => void;
@@ -199,6 +199,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed line-clamp-2">
                   {pillar.description}
                 </p>
+
+                {pillar.sections.length > 1 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {pillar.sections.slice(1).map((sec) => (
+                      <button
+                        key={sec.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onExploreNotes(pillar.id, sec.id);
+                        }}
+                        className="px-2 py-1 rounded-md bg-white/90 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition-colors"
+                      >
+                        {sec.title} →
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-xs font-semibold">

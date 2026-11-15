@@ -1,10 +1,10 @@
 # Building Basic LLM Apps (08-building-basic-llm-apps.md)
 
-> **Lecture Series**: Generative AI (Nitish Singh / CampusX)
-> **Perspective**: The User's Perspective (Timestamp 41:37 / 50:14)
-> **Slide Box**: Building Basic LLM Apps (Green (Full Left Column))
+> Reference: YouTube Lecture Series by Nitish Singh (CampusX)
+> Perspective: The User's Perspective (41:37)
+> Slide Box: Building Basic LLM Apps (Green (Full Left Column))
 
-## Topics From the Slide
+## Table of Contents
 * Open Source vs Closed Source LLMs
 * Using LLM APIs
 * LangChain
@@ -13,19 +13,7 @@
 
 ---
 
-## Quick Summary
-
-**Core Idea:** As a User (app developer), you don’t build the LLM from scratch—you connect existing LLMs to your app using APIs and tools.
-
-* Open Source vs Closed Source LLMs: Closed models (like GPT, Gemini, Claude) are owned by companies and accessed via paid APIs. Open-source models (like Llama, Mistral) let you download the model and run it yourself for full privacy and control.
-* Using LLM APIs: Sending a prompt from your code to an AI service over the internet and receiving the generated answer back.
-* LangChain: A popular developer framework that gives you ready-made building blocks to connect LLMs with prompts, files, and external tools.
-* HuggingFace: The go-to community website ("GitHub for AI") where you can find, test, and download open-source models and datasets.
-* Ollama: A simple tool that lets you download and run open-source LLMs right on your own laptop—no cloud or paid API needed.
-
-> **Easy Takeaway:** Start by calling an LLM API or running a model locally with Ollama, then use LangChain when you want to wire multiple steps together.
-
----
+## Building Basic LLM Apps: The 5 Core Building Blocks
 
 ## 8. Building Basic LLM Apps
 
@@ -46,12 +34,97 @@ This box shows the **5 essential tools and choices** when you start building AI 
    * A lightweight tool for running open-source LLMs locally on your own computer.
 
 
----
-
-## Self-Check Questions
-
-### Q1: What is the simple difference between Closed Source and Open Source LLMs?
+### Self-Check Questions
+#### Q1: What is the simple difference between Closed Source and Open Source LLMs?
 **Answer:** Closed Source LLMs (like ChatGPT/Gemini) run on the provider’s servers and are super easy to call via API, while Open Source LLMs can be downloaded and hosted on your own hardware for privacy and full control.
 
-### Q2: Why do beginners use Ollama?
+#### Q2: Why do beginners use Ollama?
 **Answer:** Ollama makes running open-source models like Llama on a personal computer as easy as running a single terminal command, with zero complex setup.
+
+
+
+---
+
+## LangChain: What is LangChain & Benefits
+
+![Lecture Slide: What is LangChain (29 January 2025, 08:35)](../public/assets/aistudio/image_80990d47.png)
+*About this slide:* This slide defines LangChain as a free, open-source framework with modular components ("chains") and tool integrations that make it simple to build chatbots, Q&A systems, RAG, and AI agents using any major LLM.
+
+![Lecture Slide: Benefits of LangChain](../public/assets/aistudio/image_d1ee6857.png)
+*About this slide:* This slide lists the 4 core reasons developers use LangChain: connecting steps through chains, writing model-agnostic code across LLMs, getting a complete ecosystem of tools, and handling chat memory and state.
+## What is LangChain
+
+> 📸 **Slide Reference**: User's Perspective → **LangChain** (*29 January 2025 · 08:35*)
+
+### Definition (From Slide)
+**LangChain** is an **open source framework** that helps in **building LLM based applications**. It provides **modular components** and **end-to-end tools** that help developers **build complex AI applications**, such as:
+* **Chatbots**
+* **Question-answering systems**
+* **Retrieval-Augmented Generation (RAG)**
+* **Autonomous agents**, and more
+
+---
+
+### 5 Key Highlights (From Slide)
+1. **Supports all the major LLMs**
+2. **Simplifies developing LLM based applications** → connects steps using **chains**
+3. **Integrations available for all major tools**
+4. **Open source / Free / Actively developed**
+5. **Supports all major GenAI use cases**
+
+---
+
+### Benefits of LangChain (From Slide)
+1. **Concept of chains**
+   * Lets you connect multiple steps (e.g., *Prompt → LLM → Output*) into one clean pipeline instead of writing messy manual code.
+2. **Model Agnostic Development**
+   * Your app is not locked into one provider—you can switch between GPT, Gemini, Claude, or local Ollama models with minimal changes.
+3. **Complete ecosystem**
+   * Gives you built-in building blocks for document loaders, text splitters, vector databases, prompts, and APIs all in one place.
+4. **Memory and state handling**
+   * Easily remembers previous messages and keeps track of conversation state, which is essential for chatbots and multi-step agents.
+
+
+### Self-Check Questions
+#### Q1: What is LangChain in simple words?
+**Answer:** LangChain is a free, open-source framework that provides ready-made components and tools ("chains") to build LLM apps like chatbots, Q&A systems, RAG, and autonomous agents.
+
+#### Q2: What are the 4 main benefits of using LangChain?
+**Answer:** 1. Concept of chains (connecting multi-step workflows), 2. Model Agnostic Development (easy to swap LLMs), 3. Complete ecosystem (loaders, vector DBs, tools), and 4. Memory and state handling (keeping chat history and workflow state).
+
+
+
+---
+
+## How Semantic Search Works
+
+![Lecture Diagram: How Semantic Search Works (PDF → Embeddings → Database → Semantic Search → Brain)](../public/assets/aistudio/image_640c5767.png)
+*About this slide:* This diagram shows two connected flows: the top flow uploads a PDF to AWS S3, splits it into pages (Page 1 to 1000), converts each page into Embeddings, and stores them in a Database; the bottom flow turns a User Query into an Embedding, runs Semantic Search to pull relevant pages, combines Pages + User Query into a System Query, and sends it to the Brain (LLM) for the Final Output.
+## How Semantic Search Works
+
+> 📸 **Slide Reference**: User's Perspective → **LangChain** (*Semantic Search Flow Diagram*)
+
+### Part 1: Storing Your PDF (Top Flow in Diagram)
+1. **PDF → AWS S3**: Upload your PDF file to cloud storage (**AWS S3**).
+2. **Doc Loader**: Loads the **PDF** from AWS S3 into your application.
+3. **Text Splitter**: Splits the large PDF into smaller pages (**Page 1, Page 2, Page 3 ... Page 1000**).
+4. **Embeddings**: Each page is turned into an **Embedding** (**Embedding 1, Embedding 2, Embedding 3 ... Embedding 1K**) so its meaning can be compared mathematically.
+5. **Database**: All embeddings are stored inside a **Database**.
+
+---
+
+### Part 2: Answering a Question (Bottom Flow in Diagram)
+1. **User Query → Embedding**: The user's question is converted into an **Embedding**.
+2. **Semantic Search**: Compares the query Embedding against the **Database** to find the most relevant **Pages** by meaning.
+3. **System Query**: Bundles the retrieved **Pages + User Query** together into a **System Query**.
+4. **Brain → Final Output**: The **Brain** (the LLM) reads the System Query and produces the **Final Output**.
+
+
+### Self-Check Questions
+#### Q1: Why do we split a PDF into pages and create Embeddings instead of sending the whole 1,000-page PDF to the Brain (LLM)?
+**Answer:** A 1,000-page PDF is too large and slow to send every time. Splitting it into pages and storing their Embeddings lets Semantic Search quickly pull only the few matching pages for the System Query.
+
+#### Q2: What goes inside the System Query sent to the Brain?
+**Answer:** The System Query combines two things: the relevant Pages retrieved from the Database via Semantic Search + the original User Query.
+
+

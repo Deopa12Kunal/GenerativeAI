@@ -13,6 +13,7 @@ export interface NoteSection {
   markdownContent: string;
   interviewQuestions: { question: string; answer: string }[];
   codeSnippets?: { language: string; title: string; code: string }[];
+  slideImages?: { src: string; caption: string; explanation?: string }[];
 }
 
 export interface NotePillar {
@@ -535,6 +536,136 @@ This box shows the **5 essential tools and choices** when you start building AI 
    * The central hub where developers share open-source models, datasets, and demos.
 5. **Ollama**
    * A lightweight tool for running open-source LLMs locally on your own computer.
+`
+      },
+      {
+        id: 'langchain-what-is-langchain',
+        pillarId: 'basic-llm-apps',
+        title: 'LangChain: What is LangChain & Benefits',
+        slideBoxRef: "User's Perspective → LangChain (What is LangChain & Benefits)",
+        summary: 'Simple definition of LangChain, what you can build with it, 5 key highlights, and the 4 core benefits directly from the lecture slides.',
+        keyConcepts: ['Open Source Framework', 'Chains', 'Model Agnostic Development', 'Complete Ecosystem', 'Memory & State'],
+        slideImages: [
+          {
+            src: '/assets/aistudio/image_80990d47.png',
+            caption: 'Lecture Slide: What is LangChain (29 January 2025, 08:35)',
+            explanation: 'This slide defines LangChain as a free, open-source framework with modular components ("chains") and tool integrations that make it simple to build chatbots, Q&A systems, RAG, and AI agents using any major LLM.'
+          },
+          {
+            src: '/assets/aistudio/image_d1ee6857.png',
+            caption: 'Lecture Slide: Benefits of LangChain',
+            explanation: 'This slide lists the 4 core reasons developers use LangChain: connecting steps through chains, writing model-agnostic code across LLMs, getting a complete ecosystem of tools, and handling chat memory and state.'
+          }
+        ],
+        crispSummary: {
+          coreFormulaOrRule: 'LangChain gives you chains, model-agnostic code, a complete ecosystem, and memory/state handling to build LLM apps fast.',
+          bulletPoints: [
+            'What It Is: An open-source framework with modular components and end-to-end tools to build chatbots, Q&A systems, RAG, and autonomous agents.',
+            '5 Slide Highlights: (1) Supports all major LLMs, (2) Simplifies LLM apps via chains, (3) Integrations for major tools, (4) Open source / Free / Actively developed, (5) Supports all major GenAI use cases.',
+            'Benefit 1 — Concept of Chains: Link multiple steps (like prompt → LLM → output parser) into one smooth pipeline.',
+            'Benefit 2 — Model Agnostic Development: Switch between different LLMs (OpenAI, Gemini, Claude, Ollama) without rewriting your app.',
+            'Benefit 3 — Complete Ecosystem: Ready-made integrations for document loaders, splitters, vector databases, and external tools.',
+            'Benefit 4 — Memory and State Handling: Built-in support for remembering past chat messages and tracking conversation state.'
+          ],
+          builderTakeaway: 'Think of LangChain as LEGO blocks ("chains") that stay model-agnostic, remember conversation state, and plug into the whole AI ecosystem.'
+        },
+        interviewQuestions: [
+          {
+            question: 'What is LangChain in simple words?',
+            answer: 'LangChain is a free, open-source framework that provides ready-made components and tools ("chains") to build LLM apps like chatbots, Q&A systems, RAG, and autonomous agents.'
+          },
+          {
+            question: 'What are the 4 main benefits of using LangChain?',
+            answer: '1. Concept of chains (connecting multi-step workflows), 2. Model Agnostic Development (easy to swap LLMs), 3. Complete ecosystem (loaders, vector DBs, tools), and 4. Memory and state handling (keeping chat history and workflow state).'
+          }
+        ],
+        markdownContent: `## What is LangChain
+
+> 📸 **Slide Reference**: User's Perspective → **LangChain** (*29 January 2025 · 08:35*)
+
+### Definition (From Slide)
+**LangChain** is an **open source framework** that helps in **building LLM based applications**. It provides **modular components** and **end-to-end tools** that help developers **build complex AI applications**, such as:
+* **Chatbots**
+* **Question-answering systems**
+* **Retrieval-Augmented Generation (RAG)**
+* **Autonomous agents**, and more
+
+---
+
+### 5 Key Highlights (From Slide)
+1. **Supports all the major LLMs**
+2. **Simplifies developing LLM based applications** → connects steps using **chains**
+3. **Integrations available for all major tools**
+4. **Open source / Free / Actively developed**
+5. **Supports all major GenAI use cases**
+
+---
+
+### Benefits of LangChain (From Slide)
+1. **Concept of chains**
+   * Lets you connect multiple steps (e.g., *Prompt → LLM → Output*) into one clean pipeline instead of writing messy manual code.
+2. **Model Agnostic Development**
+   * Your app is not locked into one provider—you can switch between GPT, Gemini, Claude, or local Ollama models with minimal changes.
+3. **Complete ecosystem**
+   * Gives you built-in building blocks for document loaders, text splitters, vector databases, prompts, and APIs all in one place.
+4. **Memory and state handling**
+   * Easily remembers previous messages and keeps track of conversation state, which is essential for chatbots and multi-step agents.
+`
+      },
+      {
+        id: 'how-semantic-search-works',
+        pillarId: 'basic-llm-apps',
+        title: 'How Semantic Search Works',
+        slideBoxRef: "User's Perspective → LangChain (Slide 2: Semantic Search Workflow)",
+        summary: 'Step-by-step walkthrough of how a PDF is split, converted to embeddings, searched semantically, and sent to the Brain (LLM) for the final output.',
+        keyConcepts: ['Doc Loader', 'Text Splitter', 'Embeddings', 'Database', 'Semantic Search', 'System Query', 'Brain'],
+        slideImages: [
+          {
+            src: '/assets/aistudio/image_640c5767.png',
+            caption: 'Lecture Diagram: How Semantic Search Works (PDF → Embeddings → Database → Semantic Search → Brain)',
+            explanation: 'This diagram shows two connected flows: the top flow uploads a PDF to AWS S3, splits it into pages (Page 1 to 1000), converts each page into Embeddings, and stores them in a Database; the bottom flow turns a User Query into an Embedding, runs Semantic Search to pull relevant pages, combines Pages + User Query into a System Query, and sends it to the Brain (LLM) for the Final Output.'
+          }
+        ],
+        crispSummary: {
+          coreFormulaOrRule: 'Split PDF into pages → convert pages into Embeddings in a Database → match User Query by meaning (Semantic Search) → send matching Pages + User Query to Brain (LLM).',
+          bulletPoints: [
+            '1. Upload & Load PDF: Upload your PDF to AWS S3, then read it into your app using a Doc Loader.',
+            '2. Text Splitter: Break the large PDF (e.g., 1,000 pages) into smaller pieces: Page 1, Page 2, Page 3 ... Page 1000.',
+            '3. Convert Pages to Embeddings: Turn every page into an Embedding (Embedding 1, Embedding 2 ... Embedding 1K)—a number form that captures meaning—and save them in a Database.',
+            '4. User Query → Embedding: When a user asks a question, convert the User Query into an Embedding too.',
+            '5. Semantic Search: Search the Database using the query Embedding to find the pages with the closest meaning.',
+            '6. System Query → Brain → Final Output: Combine the matching Pages + User Query into a System Query, send it to the Brain (LLM), and get the Final Output.'
+          ],
+          builderTakeaway: 'Semantic search finds answers by meaning—not just exact word matches—and sends only the relevant pages to the LLM so it gives an accurate final answer.'
+        },
+        interviewQuestions: [
+          {
+            question: 'Why do we split a PDF into pages and create Embeddings instead of sending the whole 1,000-page PDF to the Brain (LLM)?',
+            answer: 'A 1,000-page PDF is too large and slow to send every time. Splitting it into pages and storing their Embeddings lets Semantic Search quickly pull only the few matching pages for the System Query.'
+          },
+          {
+            question: 'What goes inside the System Query sent to the Brain?',
+            answer: 'The System Query combines two things: the relevant Pages retrieved from the Database via Semantic Search + the original User Query.'
+          }
+        ],
+        markdownContent: `## How Semantic Search Works
+
+> 📸 **Slide Reference**: User's Perspective → **LangChain** (*Semantic Search Flow Diagram*)
+
+### Part 1: Storing Your PDF (Top Flow in Diagram)
+1. **PDF → AWS S3**: Upload your PDF file to cloud storage (**AWS S3**).
+2. **Doc Loader**: Loads the **PDF** from AWS S3 into your application.
+3. **Text Splitter**: Splits the large PDF into smaller pages (**Page 1, Page 2, Page 3 ... Page 1000**).
+4. **Embeddings**: Each page is turned into an **Embedding** (**Embedding 1, Embedding 2, Embedding 3 ... Embedding 1K**) so its meaning can be compared mathematically.
+5. **Database**: All embeddings are stored inside a **Database**.
+
+---
+
+### Part 2: Answering a Question (Bottom Flow in Diagram)
+1. **User Query → Embedding**: The user's question is converted into an **Embedding**.
+2. **Semantic Search**: Compares the query Embedding against the **Database** to find the most relevant **Pages** by meaning.
+3. **System Query**: Bundles the retrieved **Pages + User Query** together into a **System Query**.
+4. **Brain → Final Output**: The **Brain** (the LLM) reads the System Query and produces the **Final Output**.
 `
       }
     ]
