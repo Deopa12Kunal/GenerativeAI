@@ -1,4 +1,4 @@
-# Python & PyTorch
+# Python & Checkpoints
 __pycache__/
 *.pt
 *.safetensors
