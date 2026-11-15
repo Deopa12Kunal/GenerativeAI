@@ -1,50 +1,32 @@
 # Deployment (07-deployment.md)
 
 > Reference: YouTube Lecture "Generative AI: The Builder's Perspective" by Nitish Singh (CampusX, Timestamp 35:35)
-> Slide Box: Deployment (Warm Grey/Stone (Right-Bottom Right Box))
+> Slide Box: Deployment (Warm Grey (Bottom-Far-Right Box))
 
 ## Table of Contents
-* Serving Frameworks (vLLM, TGI, Triton, Ollama)
-* Edge vs Cloud Deployment
-* API Design & Server-Sent Events (SSE) Streaming
-* Observability (TTFT vs ITL) & Safety Guardrails
+* Hosting Models via APIs
+* Cloud vs Local/Edge Deployment
+* Streaming Responses & Scaling
 
 ---
 
-## Deployment: Serving Engines, Streaming & Latency SLA
+## Deployment — Putting the Model Live
 
 ## 7. Deployment
 
-> 📸 **Slide Reference**: YouTube Lecture *The Builder's Perspective* (35:35 / 50:14) | **Box 7: Deployment (Warm Grey)**
+> 📸 **Slide Reference**: *The Builder's Perspective* (35:35 / 50:14) · **Warm Grey Box (Bottom-Right)**
 
-### Latency Anatomy: Prefill vs Decode
+### What Is It?
+**Deployment** is the final stage of the Builder's journey—taking a trained, optimized, and evaluated model and making it live so real users and software applications can use it.
 
-```
-User Prompt -> [1. Prefill Phase (Compute-Bound)] -> First Token -> [2. Decode Phase (Bandwidth-Bound)] -> Output Tokens
-                └── TTFT (Time to First Token) ──┘                  └── ITL (Inter-Token Latency) ────┘
-```
-
----
-
-### Serving Stack Comparison
-
-| Engine | Best For | Continuous Batching | Quantization Support |
-| :--- | :--- | :--- | :--- |
-| **vLLM** | High-throughput Cloud GPUs | Yes (PagedAttention) | AWQ, GPTQ, FP8, INT4 |
-| **TGI** | Hugging Face ecosystem | Yes | AWQ, GPTQ, BitsAndBytes |
-| **Ollama / llama.cpp** | Local edge (Mac M1/M2/M3, Laptop) | Basic | GGUF (2-8 bit) |
-| **Triton** | Heterogeneous enterprise stacks | Yes | TensorRT-LLM, ONNX, vLLM |
-
----
-
-### Guardrails Checklist
-* **Input Stage**: Detect prompt injections, jailbreaks, PII scrubbing.
-* **In-Flight Stage**: Streaming moderation (drop connection if safety threshold breached).
-* **Output Stage**: Structured JSON schema adherence validation.
+### Core Ideas
+* **API Endpoint**: Exposes the model so websites and mobile apps can send requests and get responses.
+* **Cloud vs On-Device**: Choosing between powerful cloud GPUs (for large models) or local devices (for privacy and offline use).
+* **Reliability & Scaling**: Making sure the server stays fast even when thousands of users send prompts at the same time.
 
 
 ### Key Technical Interview Q&A
-#### Q1: What is Continuous Batching (In-Flight Batching)?
-**Answer:** Instead of waiting for all sequences in a batch to finish generation, continuous batching evicts completed requests at each token iteration and immediately inserts new requests, boosting GPU utilization by 3-5x.
+#### Q1: Why do most AI chat apps stream responses word-by-word instead of waiting until the full answer is ready?
+**Answer:** Generating a long answer can take several seconds. Streaming shows the first words right away, making the app feel much faster to the user.
 
 
