@@ -5,64 +5,33 @@
 
 ## Table of Contents
 * Task specific tuning
-* Instruction tuning (SFT)
+* Instruction tuning
 * Continual Pretraining
-* RLHF (Reward Modeling & PPO) vs DPO
-* PEFT (LoRA & QLoRA)
+* RLHF
+* PEFT
 
 ---
 
-## Post-Training: Task Tuning, SFT, Continual Pretraining, RLHF & PEFT
+## Fine-Tuning: All 5 Methods From the Slide
 
-## 4. Fine-Tuning (Post-Training)
+## 4. Fine-Tuning
 
-> 📸 **Slide Reference**: YouTube Lecture *The Builder's Perspective* (35:35 / 50:14) | **Box 5: Fine-Tuning (Purple)**
+> 📸 **Slide Reference**: *The Builder's Perspective* (35:35 / 50:14) · **Purple Box (Top-Right)**
 
-### The 5 Post-Training Pillars from Slide
+After pretraining, a model knows a lot of text, but doesn't yet know how to be a helpful assistant. The slide lists **5 key fine-tuning concepts**:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Fine-Tuning                                                 │
-│  • Task specific tuning             • RLHF                  │
-│  • Instruction tuning               • PEFT                  │
-│  • Continual Pretraining                                    │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 1. Task Specific Tuning vs Instruction Tuning (SFT)
-* **Task Specific**: Full parameter tuning for one task (e.g. classification). Prone to catastrophic forgetting.
-* **Instruction Tuning (SFT)**: Formatting datasets with system instructions, user queries, and assistant responses.
-
----
-
-### 2. Continual Pretraining
-* Running next-token prediction on specialized corpora (e.g., 50B tokens of legal or medical text).
-* Uses learning rates ~10% of base pretraining LR to prevent knowledge erasure.
-
----
-
-### 3. RLHF vs DPO
-* **RLHF (PPO)**: Actor $\to$ Critic $\to$ Reward Model $\to$ Reference Model (4 models in VRAM).
-* **DPO (Direct Preference Optimization)**:
-  $$\mathcal{L}_{\text{DPO}}(\pi_\theta) = -\mathbb{E}_{(x, y_w, y_l)} \left[ \log \sigma \left( \beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \right) \right]$$
-
----
-
-### 4. PEFT (LoRA & QLoRA)
-* **LoRA**: $h = W_0 x + \frac{\alpha}{r} (B \cdot A) x$
-* **QLoRA Pillars**:
-  1. **NF4 (NormalFloat4)**: Information-theoretically optimal 4-bit data type for zero-mean normal weights.
-  2. **Double Quantization**: Quantizes quantization constants, saving 0.37 bits/param.
-  3. **Paged Optimizers**: Prevents OOM memory spikes during gradient checkpointing.
+* **Task specific tuning**: Adjusting the model to excel at one narrow job (e.g., spam detection or sentiment tagging).
+* **Instruction tuning**: Training the model on Question-and-Answer examples so it learns to follow instructions.
+* **Continual Pretraining**: Continuing training on domain-specific documents (like healthcare or finance) to add new domain knowledge.
+* **RLHF** *(Reinforcement Learning from Human Feedback)*: Using human feedback to teach the model which answers are helpful, honest, and safe.
+* **PEFT** *(Parameter-Efficient Fine-Tuning)*: Smart techniques that fine-tune only a small fraction of the model so it runs on much smaller hardware.
 
 
 ### Key Technical Interview Q&A
-#### Q1: What is the mathematical formulation of LoRA and why does it save memory?
-**Answer:** W = W0 + (alpha / r) * (B * A), where A is (r x k) and B is (d x r) with r << d. Optimizer states (Adam momentum + variance) are only tracked for the tiny adapter matrices, reducing trainable parameters and optimizer memory by >90%.
+#### Q1: What is the difference between Instruction Tuning and RLHF?
+**Answer:** Instruction Tuning teaches the model the format of following user commands using example Q&A pairs. RLHF goes a step further by using human preferences to make answers safer, more accurate, and aligned with what people prefer.
 
-#### Q2: How does DPO improve upon traditional RLHF (PPO)?
-**Answer:** DPO analytically derives policy loss directly from preference pairs (chosen vs rejected) without needing to train or maintain a separate Reward Model or run reinforcement learning rollouts.
+#### Q2: Why is PEFT so popular?
+**Answer:** Retraining all weights of a massive LLM is very expensive. PEFT freezes most of the model and only trains a small set of new parameters, saving huge amounts of GPU memory and time.
 
 
