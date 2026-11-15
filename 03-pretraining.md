@@ -4,63 +4,29 @@
 > Slide Box: Pretraining (Blue (Center-Top Box))
 
 ## Table of Contents
-* Training Objectives (CLM, MLM)
-* Tokenization Strategies (BPE, Byte Fallback)
-* Training Strategies (DDP, FSDP, 3D Parallelism)
-* Handling Challenges (Loss Spikes, BF16 vs FP16)
+* Training Objectives
+* Tokenization Strategies
+* Training Strategies
+* Handling challenges
 
 ---
 
-## Pretraining: Objectives, Tokenization, Distributed Scale & Stability
+## Pretraining: The 4 Core Topics on the Slide
 
 ## 3. Pretraining
 
-> 📸 **Slide Reference**: YouTube Lecture *The Builder's Perspective* (35:35 / 50:14) | **Box 3: Pretraining (Blue)**
+> 📸 **Slide Reference**: *The Builder's Perspective* (35:35 / 50:14) · **Blue Box (Center-Top)**
 
-### The 4 Pretraining Pillars from Slide
+Pretraining is the stage where an AI model learns language and general knowledge from massive text datasets. The slide highlights **4 key subtopics**:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Pretraining                                                 │
-│  • Training Objectives                                      │
-│  • Tokenization Strategies                                  │
-│  • Training Strategies                                      │
-│  • Handling challenges                                      │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 1. Training Objectives
-* **Causal Language Modeling (CLM)**:
-  $$\mathcal{L}_{\text{CLM}} = - \sum_{t=1}^T \log P(w_t \mid w_1, w_2, \dots, w_{t-1})$$
-* Cross-entropy loss computed across vocabulary for every token position in parallel.
-
----
-
-### 2. Tokenization Strategies
-* **Byte-level BPE**: Uses UTF-8 bytes as base units.
-* **Vocab Expansion**: LLaMA 3 expanded vocab from 32K to **128K tokens**, reducing sequence length by ~15% for multilingual text and code.
-
----
-
-### 3. Training Strategies (3D Distributed Parallelism)
-* **Tensor Parallelism (TP)**: Splits individual linear layers across GPUs in one node (via NVLink).
-* **Pipeline Parallelism (PP)**: Partitions sequential layers across different nodes.
-* **FSDP / ZeRO-3**: Shards parameters, gradients, and optimizer states across all ranks.
-
----
-
-### 4. Handling Challenges
-* **Loss Spikes**: Caused by bad web data batches or attention logit explosions. Fixed by **QK-Norm** and gradient clipping.
-* **Precision**: Always prefer **BF16** over FP16 to eliminate gradient underflow.
+1. **Training Objectives**: The rule used to teach the model (for example, *"guess the next word"* or *"fill in the missing word"*).
+2. **Tokenization Strategies**: How text is broken down into smaller pieces (**tokens**) and converted into numbers before entering the model.
+3. **Training Strategies**: How engineers distribute the workload across multiple GPUs/machines to train huge models efficiently.
+4. **Handling challenges**: Dealing with real-world hurdles like high hardware costs, memory limits, and keeping training stable.
 
 
 ### Key Technical Interview Q&A
-#### Q1: Why do LLMs use BF16 instead of FP16 during pretraining?
-**Answer:** BF16 has an 8-bit exponent (matching FP32) compared to FP16 5-bit exponent. This prevents gradient underflow and overflow during large matrix multiplications without requiring delicate loss scaling.
-
-#### Q2: What are the three ZeRO stages in DeepSpeed / FSDP?
-**Answer:** ZeRO-1 shards optimizer states (4x VRAM savings). ZeRO-2 shards optimizer states + gradients (8x savings). ZeRO-3 shards optimizer states + gradients + model parameters across all GPUs.
+#### Q1: What is tokenization and why is it needed during pretraining?
+**Answer:** AI models only understand numbers, not raw letters. Tokenization breaks text into common words or word pieces ("tokens") and maps each piece to a number ID.
 
 
