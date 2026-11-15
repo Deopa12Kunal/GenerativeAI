@@ -1,42 +1,32 @@
 # Evaluation (06-evaluation.md)
 
 > Reference: YouTube Lecture "Generative AI: The Builder's Perspective" by Nitish Singh (CampusX, Timestamp 35:35)
-> Slide Box: Evaluation (Cyan (Right-Bottom Left Box))
+> Slide Box: Evaluation (Cyan (Bottom-Right Left Box))
 
 ## Table of Contents
-* Academic Benchmarks (MMLU, GSM8K, HumanEval)
-* Automated NLP Metrics (Perplexity, BLEU, ROUGE)
-* LLM-as-a-Judge & Rubric Evaluation
-* Chatbot Arena (LMSYS) & Elo Rating
+* Measuring Accuracy & Reasoning
+* Standard Benchmarks & Human Testing
+* Checking for Hallucinations & Safety
 
 ---
 
-## Evaluation: Academic Benchmarks, Arena Elo & LLM-as-a-Judge
+## Evaluation — Testing Model Quality
 
 ## 6. Evaluation
 
-> 📸 **Slide Reference**: YouTube Lecture *The Builder's Perspective* (35:35 / 50:14) | **Box 6: Evaluation (Cyan)**
+> 📸 **Slide Reference**: *The Builder's Perspective* (35:35 / 50:14) · **Cyan Box (Bottom-Right)**
 
-### Benchmark Matrix
+### What Is It?
+**Evaluation** is how builders measure whether a model actually works well—checking its reasoning, accuracy, coding skills, and safety before deployment.
 
-| Benchmark | Target Capability | Metric |
-| :--- | :--- | :--- |
-| **MMLU** | General World Knowledge (STEM, Humanities) | 5-shot Multiple Choice Accuracy |
-| **GSM8K** | Grade School Multi-Step Math Reasoning | Exact Match Accuracy |
-| **HumanEval** | Python Code Synthesis | pass@1, pass@10 unit test execution |
-| **SWE-bench** | End-to-end GitHub Issue resolution | % of automated test suites resolved |
-| **Chatbot Arena** | Human conversation preference | Bradley-Terry Elo Rating |
-
----
-
-### LLM-as-a-Judge Best Practices
-1. **Swap Positions**: Run both (Model A, Model B) and (Model B, Model A) to neutralize position bias.
-2. **Explicit Scoring Rubric**: Score 1–5 across concrete criteria (Accuracy, Tone, Formatting, Safety).
-3. **Reference Answers**: Provide gold-standard ground truth for the judge to compare against.
+### Key Ways to Evaluate
+* **Standard Benchmarks**: Giving the model standardized tests (math, coding, reading comprehension) to compare it against other models.
+* **Task-Specific Checks**: Measuring accuracy on your own business tasks.
+* **Human Feedback**: Having people compare answers from two models and vote on which one is better.
 
 
 ### Key Technical Interview Q&A
-#### Q1: What are the three main biases of LLM-as-a-Judge and how do you mitigate them?
-**Answer:** 1) Position Bias (prefers first option): Evaluate twice with swapped order. 2) Verbosity Bias (favors longer answers): Explicit rubric instructions penalizing fluff. 3) Self-Enhancement Bias (favors same model family): Use multi-model judge panels.
+#### Q1: Why isn’t checking a single quiz score enough to evaluate an LLM?
+**Answer:** A model can memorize popular exam questions and still fail on real-world user prompts, give wrong facts (hallucinations), or use the wrong tone.
 
 
