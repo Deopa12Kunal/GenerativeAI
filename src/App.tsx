@@ -203,7 +203,7 @@ ${pillar.sections
     (sec) => `## ${sec.title}
 
 ${
-  sec.slideImages && sec.slideImages.length > 0
+  !sec.markdownContent.includes('![') && sec.slideImages && sec.slideImages.length > 0
     ? sec.slideImages
         .map(
           (img) =>
@@ -213,7 +213,7 @@ ${
         )
         .join('\n')
     : ''
-}${sec.markdownContent}
+}${sec.markdownContent.replace(/\]\(\/assets\//g, '](../public/assets/')}
 
 ${
   sec.interviewQuestions.length > 0

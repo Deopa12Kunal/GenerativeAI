@@ -163,6 +163,17 @@ export const UserPerspectiveView: React.FC<UserPerspectiveViewProps> = ({
                             onClick={(e) => {
                               e.stopPropagation();
                               onSelectPillar(basicApps.id);
+                              onOpenNotesForPillar(basicApps.id, 'langchain-components');
+                            }}
+                            className="px-2 py-1 rounded-md bg-white/90 dark:bg-slate-900/90 border border-emerald-300 dark:border-emerald-700 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-colors"
+                          >
+                            6 Components & Ecosystem →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPillar(basicApps.id);
                               onOpenNotesForPillar(basicApps.id, 'how-semantic-search-works');
                             }}
                             className="px-2 py-1 rounded-md bg-white/90 dark:bg-slate-900/90 border border-emerald-300 dark:border-emerald-700 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-colors"

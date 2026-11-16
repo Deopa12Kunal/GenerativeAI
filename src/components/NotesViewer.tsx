@@ -124,8 +124,9 @@ ${currentSection.interviewQuestions
   const handleDownloadSingleMd = () => {
     const allSectionsMd = currentPillar.sections
       .map((sec) => {
+        const hasInlineImages = sec.markdownContent.includes('![');
         const imgs =
-          sec.slideImages && sec.slideImages.length > 0
+          !hasInlineImages && sec.slideImages && sec.slideImages.length > 0
             ? sec.slideImages
                 .map(
                   (img) =>
@@ -135,7 +136,11 @@ ${currentSection.interviewQuestions
                 )
                 .join('\n')
             : '';
-        return `${imgs}${sec.markdownContent}`;
+        const normalizedMd = sec.markdownContent.replace(
+          /\]\(\/assets\//g,
+          '](../public/assets/'
+        );
+        return `${imgs}${normalizedMd}`;
       })
       .join('\n\n---\n\n');
     const content = `# ${currentPillar.title}\n\n${allSectionsMd}`;
@@ -309,6 +314,80 @@ ${currentSection.interviewQuestions
         continue;
       }
 
+      // Helper for inline **bold** and `code`
+      const formatInline = (text: string): React.ReactNode => {
+        const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+        return parts.map((part, idx) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return (
+              <strong key={idx} className="font-semibold text-slate-900 dark:text-white">
+                {part.slice(2, -2)}
+              </strong>
+            );
+          }
+          if (part.startsWith('`') && part.endsWith('`')) {
+            return (
+              <code
+                key={idx}
+                className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-mono text-[11px]"
+              >
+                {part.slice(1, -1)}
+              </code>
+            );
+          }
+          return part;
+        });
+      };
+
+      // Markdown Images: ![caption](src) with optional *About this slide:* line below
+      const imgMatch = line.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+      if (imgMatch) {
+        const [, altText, imgSrc] = imgMatch;
+        let explanationText = '';
+        if (i + 1 < lines.length && lines[i + 1].trim().startsWith('*About this')) {
+          explanationText = lines[i + 1]
+            .trim()
+            .replace(/^\*About this [^:]+:\*\s*/i, '');
+          i++;
+        }
+        elements.push(
+          <figure
+            key={`md-img-${i}`}
+            className="my-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950"
+          >
+            <img
+              src={imgSrc}
+              alt={altText}
+              referrerPolicy="no-referrer"
+              className="w-full h-auto max-h-[420px] object-contain mx-auto block"
+            />
+            {(altText || explanationText) && (
+              <figcaption className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-1">
+                {altText && (
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    {altText}
+                  </div>
+                )}
+                {explanationText && (
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {formatInline(explanationText)}
+                  </p>
+                )}
+              </figcaption>
+            )}
+          </figure>
+        );
+        continue;
+      }
+
+      // Horizontal dividers
+      if (line.trim() === '---') {
+        elements.push(
+          <hr key={`hr-${i}`} className="my-4 border-slate-200 dark:border-slate-800" />
+        );
+        continue;
+      }
+
       // Headings
       if (line.startsWith('## ')) {
         elements.push(
@@ -327,11 +406,27 @@ ${currentSection.interviewQuestions
         continue;
       }
 
-      // Bullet lists
-      if (line.startsWith('* ') || line.startsWith('- ')) {
+      // Numbered lists
+      if (/^\d+\.\s+/.test(line.trim())) {
         elements.push(
-          <li key={`li-${i}`} className="text-xs text-slate-700 dark:text-slate-300 ml-4 list-disc my-1">
-            {line.replace(/^(\*|-)\s+/, '')}
+          <div key={`ol-${i}`} className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed my-1 ml-1">
+            {formatInline(line.trim())}
+          </div>
+        );
+        continue;
+      }
+
+      // Bullet lists
+      if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+        const isNested = line.startsWith('   ') || line.startsWith('\t');
+        elements.push(
+          <li
+            key={`li-${i}`}
+            className={`text-xs text-slate-700 dark:text-slate-300 list-disc my-1 leading-relaxed ${
+              isNested ? 'ml-8' : 'ml-4'
+            }`}
+          >
+            {formatInline(line.trim().replace(/^(\*|-)\s+/, ''))}
           </li>
         );
         continue;
@@ -341,7 +436,7 @@ ${currentSection.interviewQuestions
       if (line.startsWith('> 📸')) {
         elements.push(
           <div key={`slide-ref-${i}`} className="p-2.5 rounded-lg bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-xs font-medium text-indigo-900 dark:text-indigo-200 flex items-center justify-between my-2">
-            <span>{line.replace(/^>\s*/, '')}</span>
+            <span>{formatInline(line.replace(/^>\s*/, ''))}</span>
             <button
               onClick={onNavigateToSlide}
               className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1"
@@ -358,7 +453,7 @@ ${currentSection.interviewQuestions
       if (line.trim().length > 0) {
         elements.push(
           <p key={`p-${i}`} className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed my-1.5">
-            {line}
+            {formatInline(line)}
           </p>
         );
       }
@@ -778,8 +873,10 @@ ${currentSection.interviewQuestions
         {/* Full Rendered Markdown Preview */}
         {viewFormat === 'rendered' && (
           <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-6">
-            {currentSection.slideImages && currentSection.slideImages.length > 0 && (
-              <div className="space-y-3">
+            {currentSection.slideImages &&
+              currentSection.slideImages.length > 0 &&
+              !currentSection.markdownContent.includes('![') && (
+                <div className="space-y-3">
                 {currentSection.slideImages.map((img, idx) => (
                   <figure
                     key={idx}

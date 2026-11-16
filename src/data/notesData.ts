@@ -613,6 +613,150 @@ This box shows the **5 essential tools and choices** when you start building AI 
 `
       },
       {
+        id: 'langchain-components',
+        pillarId: 'basic-llm-apps',
+        title: 'LangChain: 6 Components, LangServe & LangSmith',
+        slideBoxRef: "User's Perspective → LangChain (Components, Models, Indexes, Memory, Agents)",
+        summary: 'All 6 LangChain components (Models, Prompts, Chains, Memory, Indexes, Agents), plus LangGraph, LangServe, and LangSmith explained simply.',
+        keyConcepts: ['Models', 'Prompts', 'Chains', 'Memory', 'Indexes', 'Agents', 'LangGraph', 'LangServe', 'LangSmith'],
+        slideImages: [
+          {
+            src: '/assets/aistudio/image_7670e8c1.png',
+            caption: 'Lecture Slide: The 6 Core Components of LangChain',
+            explanation: 'This diagram shows the 6 main building blocks inside LangChain: 1. Models, 2. Prompts, 3. Chains, 4. Memory, 5. Indexes, and 6. Agents.'
+          },
+          {
+            src: '/assets/aistudio/image_1848e14a.png',
+            caption: 'Lecture Slide: Models — Same Code Across OpenAI & Claude',
+            explanation: 'This slide compares calling OpenAI (ChatOpenAI) vs Claude (ChatAnthropic) in LangChain—both use the exact same model.invoke(...) and result.content syntax.'
+          },
+          {
+            src: '/assets/aistudio/image_55fcb036.png',
+            caption: 'Lecture Slide: 2 Types of Models in LangChain',
+            explanation: 'This slide splits Models into Language Models (text in → text out via LLMs) and Embedding Models (text in → vector out for semantic search).'
+          },
+          {
+            src: '/assets/aistudio/image_4040dbeb.png',
+            caption: 'Lecture Slide: 4 Types of Memory in LangChain',
+            explanation: 'This slide shows the 4 ways LangChain stores chat history: ConversationBufferMemory (full recent transcript), ConversationBufferWindowMemory (last N chats), Summarizer-Based Memory (condensed summaries), and Custom Memory (user preferences/facts).'
+          },
+          {
+            src: '/assets/aistudio/image_58584204.png',
+            caption: 'Lecture Slide: Indexes (23 January 2025 · 10:31)',
+            explanation: 'This slide shows how Indexes connect an LLM to external knowledge (like company leave policy or notice period PDFs) using a Doc Loader, Text Splitter, Vector Store, and Retrievers.'
+          }
+        ],
+        crispSummary: {
+          coreFormulaOrRule: 'LangChain gives you 6 core building blocks (Models, Prompts, Chains, Memory, Indexes, Agents), plus LangServe for API deployment and LangSmith for debugging & monitoring.',
+          bulletPoints: [
+            '1. Models — The core interface through which you interact with AI models (OpenAI, Claude, etc.). Divided into 2 types: Language Models (text → text) and Embedding Models (text → vector for semantic search).',
+            '2. Prompts — Reusable prompt templates with placeholders so you can send clean, dynamic instructions to any model.',
+            '3. Chains — Links multiple steps together into a single pipeline (e.g., Prompt → LLM → Output Parser) so the output of one step automatically becomes the input of the next.',
+            '4. Memory — Stores previous chat history for chatbots using 4 types: ConversationBufferMemory, ConversationBufferWindowMemory, Summarizer-Based Memory, and Custom Memory.',
+            '5. Indexes — Connects your app to external knowledge (PDFs, websites, databases) using Doc Loader, Text Splitter, Vector Store, and Retrievers.',
+            '6. Agents — LLM + Code: can use external tools (Google, Python REPL), break complex tasks into simple steps, self-reflect before answering, collaborate or debate with other agents, and be built with LangGraph.',
+            'LangServe & LangSmith — Two extra tools by LangChain: LangServe turns your chains into live REST APIs, and LangSmith lets you trace, debug, test, and monitor your LLM app.'
+          ],
+          builderTakeaway: 'Start with Models + Prompts + Chains; add Memory for chatbots, Indexes for your private data, Agents (or LangGraph) for reasoning & tools, and ship confidently with LangServe + LangSmith.'
+        },
+        interviewQuestions: [
+          {
+            question: 'What are the 2 types of Models in LangChain and how are they different?',
+            answer: 'Language Models (LLMs) take text in and return text out (for chatting, summarizing, Q&A). Embedding Models take text in and return a number vector out (used for semantic search and similarity matching).'
+          },
+          {
+            question: 'Why do we need Memory in a LangChain chatbot?',
+            answer: 'Standard LLM calls do not remember previous messages. Memory saves the previous chat history and passes it along with the new question so the LLM can hold a continuous conversation.'
+          },
+          {
+            question: 'What is the difference between LangServe and LangSmith?',
+            answer: 'LangServe helps you deploy LangChain chains as REST APIs for your app or frontend, while LangSmith is used during development and production to trace, debug, evaluate, and monitor LLM responses and costs.'
+          }
+        ],
+        markdownContent: `## Components of LangChain
+
+![Lecture Slide: The 6 Core Components of LangChain](/assets/aistudio/image_7670e8c1.png)
+*About this slide:* This diagram maps the 6 core building blocks of LangChain—**1. Models, 2. Prompts, 3. Chains, 4. Memory, 5. Indexes, and 6. Agents**—all organized around the LangChain framework.
+
+---
+
+### 1. Models
+**Models** are the **core interface through which you interact with AI models**. Instead of learning a completely different SDK for every AI company, LangChain gives you one standard way to call them.
+
+![Lecture Slide: Models — Same Code Across OpenAI & Claude](/assets/aistudio/image_1848e14a.png)
+*About this slide:* Notice how switching from **OpenAI** (\`ChatOpenAI\`) to **Claude** (\`ChatAnthropic\`) keeps almost the exact same code—\`model.invoke(...)\` and \`result.content\` do not change.
+
+![Lecture Slide: 2 Types of Models in LangChain](/assets/aistudio/image_55fcb036.png)
+*About this slide:* Under LangChain, Models are split into **2 types**: **Language Models (LLMs)** that turn *text → text*, and **Embedding Models** that turn *text → vector* for semantic search.
+
+* **Language Models (LLMs)**: Input is **text** → Output is **text** (used for chatbots, writing, summarizing, Q&A).
+* **Embedding Models**: Input is **text** → Output is a **vector** (used for **semantic search** and finding similar documents).
+
+---
+
+### 2. Prompts
+Prompts are the instructions you send to a Model. LangChain provides reusable **Prompt Templates** with variables (like \`{topic}\` or \`{language}\`) so you can fill in user inputs cleanly without rewriting prompts manually.
+
+---
+
+### 3. Chains
+A **Chain** connects multiple LangChain components together in sequence so the output of one step automatically flows into the next step.
+* **Example**: \`Prompt Template → Language Model → Output Parser\`
+* **Why It Helps**: Instead of writing separate glue code for every step, you build one clean pipeline and run it with a single \`.invoke()\` call (and you can also connect sequential, parallel, or conditional branches).
+
+---
+
+### 4. Memory
+We need **Memory** when we want to **design a Chatbot**.
+* Normally, every time you call an LLM API, it treats your message as brand new and **forgets everything you said earlier**.
+* If we want an LLM to behave like a real Chatbot, it needs to know the **previous chat history**—and that is exactly what **Memory** stores and passes back to the model.
+
+![Lecture Slide: 4 Types of Memory in LangChain](/assets/aistudio/image_4040dbeb.png)
+*About this slide:* This slide shows the 4 ways LangChain stores conversation history depending on chat length and token budget—**ConversationBufferMemory**, **ConversationBufferWindowMemory**, **Summarizer-Based Memory**, and **Custom Memory**.
+
+* **ConversationBufferMemory**: Stores a transcript of recent messages. Great for short chats, but can grow large quickly.
+* **ConversationBufferWindowMemory**: Only keeps the last **N** interactions to avoid excessive token usage.
+* **Summarizer-Based Memory**: Periodically summarizes older chat segments to keep a condensed memory footprint.
+* **Custom Memory**: For advanced use cases, lets you store specialized state (e.g., the user's preferences or key facts about them) in a custom memory class.
+
+---
+
+### 5. Indexes
+**Indexes** connect your application to **external knowledge**—such as PDFs, websites, or databases (for example, your company's internal leave policy or notice period rules that ChatGPT doesn't know).
+
+![Lecture Slide: Indexes (23 January 2025 · 10:31)](/assets/aistudio/image_58584204.png)
+*About this slide:* This diagram shows why an LLM needs external knowledge (like XYZ company's leave policy and notice period) and lists the 4 parts of Indexes: **Doc Loader, Text Splitter, Vector Store, and Retrievers**.
+
+The 4 building blocks inside Indexes:
+1. **Doc Loader**: Reads files from PDFs, AWS S3, websites, or databases.
+2. **Text Splitter**: Breaks big documents into smaller chunks/pages.
+3. **Vector Store**: Saves the vector embeddings in a searchable database.
+4. **Retrievers**: Searches the vector store and fetches the most relevant chunks for the LLM.
+
+---
+
+### 6. Agents
+**AI Agents** are a **combination of LLM and code**. Unlike a basic chatbot that only replies with text, an Agent can think, act, and use tools:
+* **External Tools**: Can access external apps like **Google Search**, **Python REPL** (running code), calculators, or APIs.
+* **Task Breakdown & Reasoning**: Can reason through a goal and divide complex tasks into smaller, simpler steps.
+* **Self-Reflection**: Can review and double-check its own answer before replying to the user.
+* **Collaboration & Debate**: Multiple agents can collaborate on a series of tasks—and even debate with each other to reach a better answer.
+* **LangGraph**: LangChain supports building advanced, stateful AI Agents and multi-agent workflows using **LangGraph** (where steps, loops, and decisions are modeled as a graph).
+
+---
+
+### Beyond the 6 Components: LangServe & LangSmith
+Apart from the 6 core components above, LangChain also built **2 important platform tools**:
+
+1. **LangServe**
+   * Helps you **deploy** your LangChain chains/apps as **ready-to-use REST APIs** (built on FastAPI).
+   * Automatically gives your chain endpoints like \`/invoke\` and \`/stream\` plus a built-in web playground so frontends or other apps can call your AI easily.
+2. **LangSmith**
+   * A **debugging, testing, and monitoring** platform for LLM apps.
+   * Lets you trace every single step inside a chain or agent, inspect the exact prompts/responses, track token costs and latency, and test whether your app's answers stay accurate.
+`
+      },
+      {
         id: 'how-semantic-search-works',
         pillarId: 'basic-llm-apps',
         title: 'How Semantic Search Works',
